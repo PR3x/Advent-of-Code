@@ -55,7 +55,7 @@ if __name__ == "__main__":
     with open("2019/input_day2.txt", "r") as f:
         data = f.read()
 
-    rom = list(map(int, data.split(",")))
+    rom = [int(x) for x in data.split(",")]
 
     output = run(rom)
     print(output[0])
