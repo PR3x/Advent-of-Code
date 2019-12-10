@@ -18,7 +18,8 @@ def run(rom):
         if opcode == 99:
             break
         elif opcode == 3:
-            temp = int(input("> "))
+            # temp = int(input("> "))  # Will always be 1 for this problem
+            temp = 1
             ram[ram[ip + 1]] = temp
             ip += 2
             continue
@@ -59,8 +60,8 @@ def main():
     rom = [int(x) for x in data.split(",")]
     output = run(rom)
 
-    print(output[0])
-
 
 if __name__ == "__main__":
-    main()
+    # main()
+    # run([1,0,3,3,1005,2,10,5,1,0,4,1,99])
+    run([101,-1,7,7,4,7,1105,11,0,99])
