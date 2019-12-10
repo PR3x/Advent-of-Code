@@ -9,11 +9,24 @@ def run(rom):
     ip = 0
     while True:
         instruction = str(ram[ip]).rjust(5, "0")
-        mode_parm3 = int(instruction[0])
+        mode_parm3 = int(instruction[0])  # currently unused
         mode_parm2 = int(instruction[1])
         mode_parm1 = int(instruction[2])
         opcode = int(instruction[3:5])
-        instruction_length = 0
+
+        # Run short instructions earliest so we don't try to read extra ram
+        if opcode == 99:
+            break
+        elif opcode == 3:
+            temp = int(input("> "))
+            ram[ram[ip + 1]] = temp
+            ip += 2
+            continue
+        elif opcode == 4:
+            output = ram[ram[ip + 1]] if mode_parm1 == 0 else ram[ip + 1]
+            print(output)
+            ip += 2
+            continue
 
         # Load parameters into "registers"
         parm1 = 0
@@ -24,30 +37,16 @@ def run(rom):
 
         parm2 = 0
         if mode_parm2 == 0:  # indirect
-            parm2 = int(ram[ram[ip + 1]])
+            parm2 = int(ram[ram[ip + 2]])
         elif mode_parm2 == 1:  # direct
-            parm2 = int(ram[ip + 1])
+            parm2 = int(ram[ip + 2])
 
         if opcode == 1:
             ram[ram[ip + 3]] = parm1 + parm2  # Writes will *never* be direct
-            instruction_length = 4
+            ip += 4
         elif opcode == 2:
             ram[ram[ip + 3]] = parm1 * parm2
-            instruction_length = 4
-        elif opcode == 3:
-            temp = int(input("> "))
-            ram[ram[ip + 1]] = temp
-            instruction_length = 2
-        elif opcode == 4:
-            output = ram[ram[ip + 1]] if mode_parm3 == 0 else ram[ip + 1]
-            print(output)
-            instruction_length = 2
-        elif opcode == 99:
-            break
-        else:
-            raise Exception("Non-existant opcode", opcode, "Position:", ip)
-
-        ip += instruction_length
+            ip += 4
 
     return ram
 
