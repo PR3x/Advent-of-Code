@@ -58,10 +58,8 @@ def main():
         data = f.read()
 
     rom = [int(x) for x in data.split(",")]
-    output = run(rom)
+    run(rom)
 
 
 if __name__ == "__main__":
-    # main()
-    # run([1,0,3,3,1005,2,10,5,1,0,4,1,99])
-    run([101,-1,7,7,4,7,1105,11,0,99])
+    main()
