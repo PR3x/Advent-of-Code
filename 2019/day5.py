@@ -19,7 +19,7 @@ def run(rom: List[int]):
     while True:
         # Decode instruction
         instruction = str(ram[ip]).rjust(5, "0")
-        mode_parm3 = int(instruction[0])
+        # mode_parm3 = int(instruction[0])  # Currently unused
         mode_parm2 = int(instruction[1])
         mode_parm1 = int(instruction[2])
         opcode = int(instruction[3:5])
@@ -64,16 +64,16 @@ def run(rom: List[int]):
         # 7: Less than
         elif opcode == 7:
             if load(ram, ip + 1, mode_parm1) < load(ram, ip + 2, mode_parm2):
-                ram[load(ram, ip + 3, mode_parm3)] = 1
+                ram[ram[ip + 3]] = 1
             else:
-                ram[load(ram, ip + 3, mode_parm3)] = 0
+                ram[ram[ip + 3]] = 0
             ip += 4
         # 8: Equals
         elif opcode == 8:
             if load(ram, ip + 1, mode_parm1) == load(ram, ip + 2, mode_parm2):
-                ram[load(ram, ip + 3, mode_parm3)] = 1
+                ram[ram[ip + 3]] = 1
             else:
-                ram[load(ram, ip + 3, mode_parm3)] = 0
+                ram[ram[ip + 3]] = 0
             ip += 4
         else:
             raise Exception("Unknown opcode", opcode)
