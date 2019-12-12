@@ -3,6 +3,9 @@
 """
 
 from typing import List
+import threading  # amps are separate computers
+from queue import SimpleQueue  # Communication between amps
+
 from itertools import permutations  # for all amp settings
 
 
@@ -13,8 +16,8 @@ def load(ram: List[int], pointer: int, mode: int) -> int:
         return int(ram[pointer])
 
 
-def run(rom: List[int], args: List[int] = []):
-    output = []  # We're not printing it anymore. Move it up scope.
+def run(rom: List[int], inp: SimpleQueue, out: SimpleQueue):
+    output = None  # We're not printing it anymore. Move it up scope.
     ram = rom.copy()  # Otherwise, rom gets clobbered
     ip = 0
     while True:
@@ -28,7 +31,7 @@ def run(rom: List[int], args: List[int] = []):
         # Execute
         # 99: Exit
         if opcode == 99:
-            break
+            return output
         # 1: Add
         elif opcode == 1:
             ram[ram[ip + 3]] = load(ram, ip + 1, mode_parm1) + load(
@@ -43,11 +46,12 @@ def run(rom: List[int], args: List[int] = []):
             ip += 4
         # 3: Input
         elif opcode == 3:
-            ram[ram[ip + 1]] = args.pop(0) if args else int(input("> "))
+            ram[ram[ip + 1]] = inp.get()
             ip += 2
         # 4: Print
         elif opcode == 4:
             output = ram[ram[ip + 1]] if mode_parm1 == 0 else ram[ip + 1]
+            out.put(output)
             # print(output)
             ip += 2
         # 5: Jump if True
@@ -79,8 +83,6 @@ def run(rom: List[int], args: List[int] = []):
         else:
             raise Exception("Unknown opcode", opcode)
 
-    return output
-
 
 def main():
     data = ""
@@ -89,14 +91,45 @@ def main():
 
     rom = [int(x) for x in data.split(",")]
     out = {}
-    for p in permutations(range(5)):
-        pstr = ''.join(str(e) for e in p)
-        shared = 0
-        for amp in p:
-            shared = run(rom, [amp, shared])
-        out[shared] = pstr
+    for p in permutations(range(5, 10)):
+        pstr = "".join(str(e) for e in p)
+
+        # communication channels
+        qab = SimpleQueue()
+        qab.put(p[1])
+        qbc = SimpleQueue()
+        qbc.put(p[2])
+        qcd = SimpleQueue()
+        qcd.put(p[3])
+        qde = SimpleQueue()
+        qde.put(p[4])
+        qea = SimpleQueue()
+        qea.put(p[0])
+
+        # amplifier computers
+        ampa = threading.Thread(target=run, args=(rom, qea, qab))
+        ampb = threading.Thread(target=run, args=(rom, qab, qbc))
+        ampc = threading.Thread(target=run, args=(rom, qbc, qcd))
+        ampd = threading.Thread(target=run, args=(rom, qcd, qde))
+        ampe = threading.Thread(target=run, args=(rom, qde, qea))
+
+        ampa.start()
+        ampb.start()
+        ampc.start()
+        ampd.start()
+        ampe.start()
+
+        qea.put(0)  # start the chain
+
+        ampa.join()
+        ampb.join()
+        ampc.join()
+        ampd.join()
+        ampe.join()
+
+        out[qea.get()] = pstr
     max_signal = max(out.keys())
-    print('Max signal:', max_signal, 'From', out[max_signal])
+    print("Max signal:", max_signal, "From", out[max_signal])
 
 
 if __name__ == "__main__":
