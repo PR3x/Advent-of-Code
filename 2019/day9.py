@@ -5,17 +5,17 @@
 import unittest
 
 from typing import List
-import threading  # amps are separate computers
+import threading  # Run isolated, stateful computers
 from queue import SimpleQueue  # Communication between amps
 
 
-def load(ram: List[int], pointer: int, mode: int, rb=0) -> int:
+def get_address(ram: List[int], pointer: int, mode: int, rb: int = 0) -> int:
     if mode == 0:
-        return ram[ram[pointer]]
-    elif mode == 1:
         return ram[pointer]
-    elif mode == 2:
-        return ram[ram[pointer] + rb]
+    if mode == 1:
+        return pointer
+    if mode == 2:
+        return ram[pointer] + rb
 
 
 def run(rom: List[int], inq: SimpleQueue, out: SimpleQueue):
@@ -26,7 +26,7 @@ def run(rom: List[int], inq: SimpleQueue, out: SimpleQueue):
     while True:
         # Decode instruction
         instruction = str(ram[ip]).rjust(5, "0")
-        # mode_parm3 = int(instruction[0])  # Currently unused
+        mode_parm3 = int(instruction[0])
         mode_parm2 = int(instruction[1])
         mode_parm1 = int(instruction[2])
         opcode = int(instruction[3:5])
@@ -37,54 +37,62 @@ def run(rom: List[int], inq: SimpleQueue, out: SimpleQueue):
             return output
         # 1: Add
         elif opcode == 1:
-            ram[ram[ip + 3]] = load(ram, ip + 1, mode_parm1, rb) + load(
-                ram, ip + 2, mode_parm2, rb
-            )  # FIXME!
+            ram[get_address(ram, ip + 3, mode_parm3, rb)] = (
+                ram[get_address(ram, ip + 1, mode_parm1, rb)]
+                + ram[get_address(ram, ip + 2, mode_parm2, rb)]
+            )
             ip += 4
         # 2: Multiply
         elif opcode == 2:
-            ram[ram[ip + 3]] = load(ram, ip + 1, mode_parm1, rb) * load(
-                ram, ip + 2, mode_parm2, rb
-            )  # FIXME!
+            ram[get_address(ram, ip + 3, mode_parm3, rb)] = (
+                ram[get_address(ram, ip + 1, mode_parm1, rb)]
+                * ram[get_address(ram, ip + 2, mode_parm2, rb)]
+            )
             ip += 4
         # 3: Input
         elif opcode == 3:
-            ram[ram[ip + 1]] = inq.get()
+            ram[get_address(ram, ip + 3, mode_parm3, rb)] = inq.get()
             ip += 2
         # 4: Print
         elif opcode == 4:
-            output = load(ram, ip + 1, mode_parm1, rb)
+            output = ram[get_address(ram, ip + 1, mode_parm1, rb)]
             out.put(output)
             ip += 2
         # 5: Jump if True
         elif opcode == 5:
-            if load(ram, ip + 1, mode_parm1, rb) != 0:
-                ip = load(ram, ip + 2, mode_parm2, rb)
+            if ram[get_address(ram, ip + 1, mode_parm1, rb)] != 0:
+                ip = ram[get_address(ram, ip + 2, mode_parm2, rb)]
             else:
                 ip += 3
         # 6: Jump if False
         elif opcode == 6:
-            if load(ram, ip + 1, mode_parm1, rb) == 0:
-                ip = load(ram, ip + 2, mode_parm2, rb)
+            if ram[get_address(ram, ip + 1, mode_parm1, rb)] == 0:
+                ip = ram[get_address(ram, ip + 2, mode_parm2, rb)]
             else:
                 ip += 3
         # 7: Less than
         elif opcode == 7:
-            if load(ram, ip + 1, mode_parm1, rb) < load(ram, ip + 2, mode_parm2, rb):
-                ram[ram[ip + 3]] = 1
+            if (
+                ram[get_address(ram, ip + 1, mode_parm1, rb)]
+                < ram[get_address(ram, ip + 2, mode_parm2, rb)]
+            ):
+                ram[get_address(ram, ip + 3, mode_parm3, rb)] = 1
             else:
-                ram[ram[ip + 3]] = 0
+                ram[get_address(ram, ip + 3, mode_parm3, rb)] = 0
             ip += 4
         # 8: Equals
         elif opcode == 8:
-            if load(ram, ip + 1, mode_parm1, rb) == load(ram, ip + 2, mode_parm2, rb):
-                ram[ram[ip + 3]] = 1
+            if (
+                ram[get_address(ram, ip + 1, mode_parm1, rb)]
+                == ram[get_address(ram, ip + 2, mode_parm2, rb)]
+            ):
+                ram[get_address(ram, ip + 3, mode_parm3, rb)] = 1
             else:
-                ram[ram[ip + 3]] = 0
+                ram[get_address(ram, ip + 3, mode_parm3, rb)] = 0
             ip += 4
         # 9: Set relative
         elif opcode == 9:
-            rb += load(ram, ip + 1, mode_parm1, rb)
+            rb += ram[get_address(ram, ip + 1, mode_parm1, rb)]
             ip += 2
         else:
             raise Exception("Unknown opcode", opcode)
@@ -117,9 +125,7 @@ class IntcodeTester(unittest.TestCase):
         rom = [int(x) for x in data.split(",")] + [0] * 100
         queue_in = SimpleQueue()
         queue_out = SimpleQueue()
-
         run(rom, queue_in, queue_out)
-
         output = []
         while not queue_out.empty():
             output.append(queue_out.get(False))
@@ -130,9 +136,7 @@ class IntcodeTester(unittest.TestCase):
         rom = [int(x) for x in data.split(",")] + [0] * 100
         queue_in = SimpleQueue()
         queue_out = SimpleQueue()
-
         run(rom, queue_in, queue_out)
-
         output = queue_out.get(False)
         self.assertEqual(len(str(output)), 16)
 
@@ -141,14 +145,10 @@ class IntcodeTester(unittest.TestCase):
         rom = [int(x) for x in data.split(",")] + [0] * 100
         queue_in = SimpleQueue()
         queue_out = SimpleQueue()
-
         run(rom, queue_in, queue_out)
-
         output = queue_out.get(False)
-
         self.assertEqual(str(output), "1125899906842624")
 
 
 if __name__ == "__main__":
-    # main()
-    unittest.main()
+    main()
