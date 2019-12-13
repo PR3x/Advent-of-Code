@@ -55,8 +55,7 @@ def run(rom: List[int], inq: SimpleQueue, out: SimpleQueue):
         elif opcode == 4:
             output = load(ram, ip + 1, mode_parm1, rb)
             # output = ram[ram[ip + 1]] if mode_parm1 == 0 else ram[ip + 1]
-            # out.put(output)
-            print(output)
+            out.put(output)
             ip += 2
         # 5: Jump if True
         elif opcode == 5:
@@ -103,16 +102,14 @@ def main():
 
     # communication channels
     queue_in = SimpleQueue()
-    # queue_in.put()
     queue_out = SimpleQueue()
-    # queue_out.put()
 
     # computer
-    run(rom, queue_in, queue_out)
-    # boost = threading.Thread(target=run, args=(rom, queue_out, queue_in))
-    # boost.start()
-    # boost.join()
-    # print(queue_out.get(False))
+    boost = threading.Thread(target=run, args=(rom, queue_in, queue_out))
+    boost.start()
+    # queue_in.put(1)
+    boost.join()
+    print(queue_out.get(False))
 
 
 if __name__ == "__main__":
