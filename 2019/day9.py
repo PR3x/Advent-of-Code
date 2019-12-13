@@ -115,6 +115,11 @@ def main():
     queue_in.put(1)
     boost.join()
 
+    boost = threading.Thread(target=run, args=(rom, queue_in, queue_out))
+    boost.start()
+    queue_in.put(2)
+    boost.join()
+
     while not queue_out.empty():
         print(queue_out.get(False))
 
