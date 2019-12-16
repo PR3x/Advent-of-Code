@@ -9,8 +9,19 @@ Coordinate = Tuple[int, int]
 
 
 class AsteroidMap:
-    def __init__(self, data):
-        self.data = data
+    def __init__(self, data: str):
+        self.__data = data.split()
+        self.__elements = {}
+        self.__process()
+
+    def __process(self):
+        y = 0
+        for line in self.__data:
+            x = 0
+            for elem in line:
+                self.__elements[(x, y)] = elem
+                x += 1
+            y += 1
 
     def monitorLocation(self) -> Coordinate:
         return (0, 0)
@@ -18,25 +29,56 @@ class AsteroidMap:
 
 class MapTester(unittest.TestCase):
     def test1(self):
-        mapdata = ".#..#\n.....\n#####\n....#\n...##"
+        mapdata = """.#..#
+.....
+#####
+....#
+...##"""
         amap = AsteroidMap(mapdata)
         output = amap.monitorLocation()
         self.assertEqual(output, (3, 4))
 
     def test2(self):
-        mapdata = "......#.#.\n#..#.#....\n..#######.\n.#.#.###..\n.#..#.....\n..#....#.#\n#..#....#.\n.##.#..###\n##...#..#.\n.#....####"
+        mapdata = """......#.#.
+#..#.#....
+..#######.
+.#.#.###..
+.#..#.....
+..#....#.#
+#..#....#.
+.##.#..###
+##...#..#.
+.#....####"""
         amap = AsteroidMap(mapdata)
         output = amap.monitorLocation()
         self.assertEqual(output, (5, 8))
 
     def test3(self):
-        mapdata = "#.#...#.#.\n.###....#.\n.#....#...\n##.#.#.#.#\n....#.#.#.\n.##..###.#\n..#...##.\n..##....##\n......#...\n.####.###."
+        mapdata = """#.#...#.#.
+.###....#.
+.#....#...
+##.#.#.#.#
+....#.#.#.
+.##..###.#
+..#...##.
+..##....##
+......#...
+.####.###."""
         amap = AsteroidMap(mapdata)
         output = amap.monitorLocation()
         self.assertEqual(output, (1, 2))
 
     def test4(self):
-        mapdata = ".#..#..###\n####.###.#\n....###.#.\n..###.##.#\n##.##.#.#.\n....###..#\n..#.#..#.#\n#..#.#.###\n.##...##.#\n.....#.#.."
+        mapdata = """.#..#..###
+####.###.#
+....###.#.
+..###.##.#
+##.##.#.#.
+....###..#
+..#.#..#.#
+#..#.#.###
+.##...##.#
+.....#.#.."""
         amap = AsteroidMap(mapdata)
         output = amap.monitorLocation()
         self.assertEqual(output, (1, 2))
