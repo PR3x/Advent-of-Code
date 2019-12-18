@@ -18,7 +18,7 @@ class AsteroidMap:
         self.__asteroids = {}
         split = data.split()
         self.__xdim = len(split[0])  # Assuming rectangular map
-        self.__ydim = len(split)
+        self.__ydim = len(split)  # These *may* be used later for __str__()
         y = 0
         for line in split:
             x = 0
@@ -51,9 +51,6 @@ class AsteroidMap:
         inv_map = {v: k for k, v in self.__asteroids.items()}
         max_found = max(inv_map.keys())
         return (inv_map[max_found], max_found)
-
-    def __str__(self):
-        return ""
 
 
 class MapTester(unittest.TestCase):
@@ -144,5 +141,14 @@ class MapTester(unittest.TestCase):
         self.assertEqual(count, 210)
 
 
+def main():
+    with open("2019/input_day10.txt", "r") as f:
+        data_in = f.read()
+    amap = AsteroidMap(data_in)
+    output, count = amap.monitorLocation()
+    print("Detected", count, "asteroids")
+
+
 if __name__ == "__main__":
-    unittest.main()
+    # unittest.main()
+    main()
