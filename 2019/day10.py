@@ -48,11 +48,9 @@ class AsteroidMap:
         return char == "#"  # `#` is defined as the asteroid character in problem
 
     def monitorLocation(self) -> Tuple[Coordinate, int]:
-        out = 0
-        for asteroid in self.__asteroids:
-            pass
-            # TODO reverse dict? Maybe?
-        return out
+        inv_map = {v: k for k, v in self.__asteroids.items()}
+        max_found = max(inv_map.keys())
+        return (inv_map[max_found], max_found)
 
     def __str__(self):
         return ""
@@ -116,7 +114,7 @@ class MapTester(unittest.TestCase):
 .....#.#.."""
         amap = AsteroidMap(mapdata)
         output, count = amap.monitorLocation()
-        self.assertEqual(output, (1, 2))
+        self.assertEqual(output, (6, 3))
         self.assertEqual(count, 41)
 
     def test5(self):
@@ -142,7 +140,7 @@ class MapTester(unittest.TestCase):
 ###.##.####.##.#..##"""
         amap = AsteroidMap(mapdata)
         output, count = amap.monitorLocation()
-        self.assertEqual(output, (1, 2))
+        self.assertEqual(output, (11, 13))
         self.assertEqual(count, 210)
 
 
