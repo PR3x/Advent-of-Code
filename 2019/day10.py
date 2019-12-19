@@ -35,31 +35,38 @@ class AsteroidMap:
         pass
 
     def __radarSweep(self, asteroid: Coordinate) -> List[Coordinate]:
-        seen_asteroids = {}
+        other_asteroids = {}
         count = 0
         for a in self.__asteroids:
-            if a == asteroid:  # This is ourselves
+            if a == asteroid:  # This is ourselves, skip
                 continue
-            angle = math.atan2(a[1] - asteroid[1], a[0] - asteroid[0])
-            angle = angle
-            if not angle in seen_asteroids:
-                seen_asteroids[angle] = a
-        sorted_angles = dict(
-            sorted(
-                seen_asteroids.items(),
-                key=lambda coord: ((coord[0] + (3 * math.pi / 2)) % (2 * math.pi)),
-                reverse=True,
-            )
-        )
-        # sorted_angles.insert(0, sorted_angles.pop())  # start, not end, straight up
+            angle = math.atan2(asteroid[1] - a[1], asteroid[0] - a[0])
+            if not angle in other_asteroids:
+                other_asteroids[angle] = a
+            else:
+                # take the shorter distance
+                dista = math.dist(asteroid, a)
+                distb = math.dist(asteroid, other_asteroids[angle])
+                if dista < distb:
+                    # swap only if new distance is shorter
+                    other_asteroids[angle] = a
 
-        out = list(sorted_angles.values())
-        out.insert(0, out.pop())
-        return out
-
-    @staticmethod
-    def __specAngleSort(coord: Coordinate):
-        return (coord[0] + (3 * math.pi / 2)) % (2 * math.pi)
+        # now we want to go clockwise through the angles
+        # from pi/2 to negative pi, to pi, to pi/2
+        seen = []
+        while len(other_asteroids) > 0:
+            # start with first, iterate through others
+            best = list(other_asteroids.keys())[0]
+            for angle in other_asteroids:
+                if angle <= math.pi / 2:
+                    if angle > best:
+                        best = angle
+                else:
+                    if angle < best:
+                        best = angle
+            seen.append(copy(other_asteroids[best]))
+            del other_asteroids[best]
+        return seen
 
     @staticmethod
     def __isAsteroid(char: str) -> bool:
@@ -71,7 +78,6 @@ class AsteroidMap:
         return (inv_map[max_found], max_found)
 
     def pewpew(self, asteroid: Coordinate) -> List[Coordinate]:
-        start_angle = math.pi / 2
         pew_map = copy(self)  # deleting asteroids on the copy of ourselves
         out = []
         while len(pew_map.__asteroids) != 1:  # The one asteroid we're sitting on
@@ -188,6 +194,8 @@ class PewTester(unittest.TestCase):
         output, count = amap.monitorLocation()
         self.assertEqual(output, (8, 3))
         pewlist = amap.pewpew((8, 3))
+        self.assertEqual(pewlist[0], (8, 1))
+        self.assertEqual(pewlist[1], (9, 0))
 
     def test2(self):
         mapdata = """.#..##.###...#######
