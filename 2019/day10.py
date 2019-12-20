@@ -34,7 +34,7 @@ class AsteroidMap:
             self.__asteroids[asteroid] = len(self.__radarSweep(asteroid))
         pass
 
-    def __radarSweep(self, asteroid: Coordinate) -> List[Coordinate]:
+    def __radarSweep(self, asteroid: Coordinate, sort=False) -> List[Coordinate]:
         other_asteroids = {}
         count = 0
         for a in self.__asteroids:
@@ -50,22 +50,25 @@ class AsteroidMap:
                 if dista < distb:
                     # swap only if new distance is shorter
                     other_asteroids[angle] = a
+        if not sort:
+            return list(other_asteroids.values())
 
-        # now we want to go clockwise through the angles
-        # from pi/2 to negative pi, to pi, to pi/2
         seen = []
         while len(other_asteroids) > 0:
-            # start with first, iterate through others
-            best = list(other_asteroids.keys())[0]
+            # largest possible angle is pi
+            bestsmall = 4
+            bestbig = 4
             for angle in other_asteroids:
-                if angle <= math.pi / 2:
-                    if angle > best:
-                        best = angle
-                else:
-                    if angle < best:
-                        best = angle
-            seen.append(copy(other_asteroids[best]))
-            del other_asteroids[best]
+                if angle < bestbig and angle >= math.pi / 2:
+                    bestbig = angle
+                if angle < bestsmall:
+                    bestsmall = angle
+            if bestbig != 4:
+                seen.append(copy(other_asteroids[bestbig]))
+                del other_asteroids[bestbig]
+            else:
+                seen.append(copy(other_asteroids[bestsmall]))
+                del other_asteroids[bestsmall]
         return seen
 
     @staticmethod
@@ -81,7 +84,7 @@ class AsteroidMap:
         pew_map = copy(self)  # deleting asteroids on the copy of ourselves
         out = []
         while len(pew_map.__asteroids) != 1:  # The one asteroid we're sitting on
-            pewed = pew_map.__radarSweep(asteroid)
+            pewed = pew_map.__radarSweep(asteroid, sort=True)
             out += pewed
             pew_map.__asteroids = [
                 asteroid for asteroid in pew_map.__asteroids if asteroid not in pewed
