@@ -247,7 +247,10 @@ def main():
     output, count = amap.monitorLocation()
     print("Detected", count, "asteroids")
 
+    twohundred = amap.pewpew(output)[199]  # 200th asteroid
+    x, y = twohundred
+    print(x * 100 + y)
+
 
 if __name__ == "__main__":
-    unittest.main()
-    # main()
+    main()
