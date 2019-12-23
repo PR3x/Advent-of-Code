@@ -33,7 +33,7 @@ class Moon:
 
     def __repr__(self):
         return f"pos={self.position}, vel={self.velocity}, name={self.name}"
-    
+
     def energy(self):
         potential = self.position.energy()
         kinetic = self.velocity.energy()
@@ -146,5 +146,14 @@ class Part1(unittest.TestCase):
         self.assertEqual(jupiter.totalEnergy(), 179)
 
 
+def main():
+    with open("2019/input_day12.txt", "r") as f:
+        in_str = f.read()
+    jupiter = System(input_parse(in_str))
+    for _ in range(1000):
+        jupiter.step()
+    print(jupiter.totalEnergy())
+
+
 if __name__ == "__main__":
-    unittest.main()
+    main()
