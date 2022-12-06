@@ -1,8 +1,5 @@
 from hashlib import md5
 
-with open("2015\input_day4.txt", "rt") as f:
-    input = f.readline().rstrip("\r\n")
-
 ### PART 1
 # m = md5()
 # out = 0
